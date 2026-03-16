@@ -22,15 +22,30 @@ namespace Payments.StripeIntegration.Application.Handlers
 
             switch (stripeEvent.Type)
             {
-                case Events.PaymentIntentSucceeded:
+                case EventTypes.PaymentIntentSucceeded:
 
-                    var paymentIntent =
-                        stripeEvent.Data.Object as PaymentIntent;
-
-                    await _mediator.Publish(
-                        new PaymentSucceededEvent(
-                            Guid.Parse(paymentIntent.Metadata["PaymentId"])
-                        ));
+                    // Safely cast to PaymentIntent
+                    if (stripeEvent.Data.Object is PaymentIntent paymentIntent)
+                    {
+                        // Extract your internal PaymentId from metadata
+                        if (paymentIntent.Metadata.TryGetValue("PaymentId", out var paymentIdString)
+                            && Guid.TryParse(paymentIdString, out var paymentId))
+                        {
+                            // Publish the internal domain event
+                            await _mediator.Publish(
+                                new PaymentSucceededEvent(paymentId, stripeEvent.Id),
+                                ct
+                            );
+                        }
+                        else
+                        {
+                            // Log or handle missing metadata / invalid GUID
+                            // e.g., ILogger or exception tracking
+                            throw new InvalidOperationException(
+                                "PaymentId metadata is missing or invalid on PaymentIntent."
+                            );
+                        }
+                    }
 
                     break;
             }

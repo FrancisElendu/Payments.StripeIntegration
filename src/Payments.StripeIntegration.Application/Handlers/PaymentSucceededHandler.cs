@@ -20,18 +20,36 @@ namespace Payments.StripeIntegration.Application.Handlers
             CancellationToken ct)
         {
             var payment = await _db.Payments
-                .FirstAsync(x => x.Id == notification.PaymentId);
+                .FirstOrDefaultAsync(x => x.Id == notification.PaymentId, ct);
 
+            if (payment == null)
+                throw new InvalidOperationException("Payment not found.");
+
+            // Idempotency check: avoid double-processing
+            if (payment.Status == PaymentStatus.Succeeded)
+                return;
+
+            payment.StripeEventId = notification.StripeEventId;
             payment.MarkSucceeded();
 
             await _db.SaveChangesAsync(ct);
+
+            // 2. Mark Stripe webhook as processed
+            var webhookLog = await _db.StripeEventLogs
+                .FirstOrDefaultAsync(x => x.EventId == notification.StripeEventId, ct);
+
+            if (webhookLog != null && !webhookLog.Processed)
+            {
+                webhookLog.Processed = true;
+                await _db.SaveChangesAsync(ct);
+            }
 
             // Example side effects
             // send receipt
             // update ledger
             // trigger fulfillment
 
-            await Task.CompletedTask;
+            //await Task.CompletedTask;
         }
     }
 }

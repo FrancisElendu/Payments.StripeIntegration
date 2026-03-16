@@ -7,6 +7,11 @@ namespace Payments.StripeIntegration.Application.Interfaces
     {
         DbSet<Payment> Payments { get; }
 
+        DbSet<StripeEventLog> StripeEventLogs { get; }
+
+
+        DbSet<OutboxMessage> OutboxMessages { get; }
+
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
 }

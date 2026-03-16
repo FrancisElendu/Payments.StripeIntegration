@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Payments.StripeIntegration.Application.Interfaces;
 using Payments.StripeIntegration.Domain.Entities;
-using Payments.StripeIntegration.Infrastructure.Persistence.Entities;
 using Payments.StripeIntegration.Shared;
 using System.Text.Json;
 
@@ -13,7 +12,7 @@ namespace Payments.StripeIntegration.Infrastructure.Persistence
 
         //public DbSet<StripeEventLog> StripeEvents { get; set; }
         public DbSet<StripeEventLog> StripeEventLogs { get; set; }
-        
+
 
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 

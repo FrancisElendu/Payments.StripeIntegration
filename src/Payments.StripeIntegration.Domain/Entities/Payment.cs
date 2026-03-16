@@ -18,6 +18,7 @@ namespace Payments.StripeIntegration.Domain.Entities
 
         public DateTime CreatedAt { get; private set; }
         public DateTime? ProcessedAt { get; private set; }
+        public string? StripeEventId { get; set; }
 
         private Payment() { }
 
@@ -29,7 +30,7 @@ namespace Payments.StripeIntegration.Domain.Entities
             Currency = currency;
             Status = PaymentStatus.Pending;
             CreatedAt = DateTime.UtcNow;
-            ProcessedAt = DateTime.UtcNow;
+            
         }
 
         public void MarkSucceeded()
@@ -37,7 +38,7 @@ namespace Payments.StripeIntegration.Domain.Entities
             Status = PaymentStatus.Succeeded;
             ProcessedAt = DateTime.UtcNow;
 
-            AddDomainEvent(new PaymentSucceededEvent(Id));
+            AddDomainEvent(new PaymentSucceededEvent(Id, StripeEventId));
         }
     }
 }
