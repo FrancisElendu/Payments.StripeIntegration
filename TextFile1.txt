@@ -95,3 +95,43 @@
         │ Payment Entity             │
         │ StripeEventId, Status      │
         └───────────────────────────┘
+
+
+        tests
+ ├── API.Tests
+ │     ├── Controllers
+ │     │     StripeWebhookControllerTests.cs
+ │     ├── ProgramTests.cs
+ │
+ ├── Application.Tests
+ │     ├── Handlers
+ │     │     PaymentSucceededHandlerTests.cs
+ │     │     StripeWebhookDispatcherTests.cs
+ │     ├── Commands
+ │     │     (if you have CQRS commands)
+ │     ├── Queries
+ │     │     (if you have queries)
+ │     └── Behaviors
+ │           LoggingBehaviorTests.cs
+ │           ValidationBehaviorTests.cs
+ │
+ ├── Domain.Tests
+ │     ├── Entities
+ │     │     PaymentTests.cs
+ │     ├── ValueObjects
+ │     │     CurrencyTests.cs
+ │     └── Events
+ │           PaymentSucceededEventTests.cs
+ │
+ ├── Infrastructure.Tests
+ │     ├── Persistence
+ │     │     OutboxProcessorTests.cs
+ │     │     ApplicationDbContextTests.cs
+ │     ├── Repositories
+ │     │     PaymentRepositoryTests.cs
+ │     └── Stripe
+ │           StripePaymentServiceTests.cs
+ │
+ └── Shared.Tests
+       BaseEntityTests.cs
+       IDomainEventTests.cs
