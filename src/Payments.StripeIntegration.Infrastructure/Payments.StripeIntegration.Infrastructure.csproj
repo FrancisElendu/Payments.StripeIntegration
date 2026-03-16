@@ -8,18 +8,24 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Payments.StripeIntegration.Application\Payments.StripeIntegration.Application.csproj" />
-    <ProjectReference Include="..\Payments.StripeIntegration.Domain\Payments.StripeIntegration.Domain.csproj" />
     <ProjectReference Include="..\Payments.StripeIntegration.Shared\Payments.StripeIntegration.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Repositories\" />
-    <Folder Include="Stripe\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.14">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.14" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.14" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.14" />
+    <PackageReference Include="Stripe.net" Version="50.4.1" />
   </ItemGroup>
 
 </Project>

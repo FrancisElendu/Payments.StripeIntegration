@@ -1,6 +1,32 @@
+using Microsoft.EntityFrameworkCore;
+using Payments.StripeIntegration.Application.Interfaces;
+using Payments.StripeIntegration.Infrastructure.Outbox;
+using Payments.StripeIntegration.Infrastructure.Persistence;
+using Payments.StripeIntegration.Infrastructure.Stripe;
+using Stripe;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+StripeConfiguration.ApiKey =
+    builder.Configuration["Stripe:SecretKey"];
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//builder.Services.AddMediatR(cfg =>
+//    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(Payments.StripeIntegration.Application.AssemblyReference).Assembly));
+
+builder.Services.AddHostedService<OutboxProcessor>();
+
+builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
+builder.Services.AddScoped<IApplicationDbContext>(provider =>
+    provider.GetRequiredService<ApplicationDbContext>());
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
