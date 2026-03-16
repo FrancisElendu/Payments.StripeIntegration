@@ -1,0 +1,43 @@
+﻿src
+ ├── API
+ │     ├── Controllers
+ │     │     StripeWebhookController.cs
+ │     ├── Program.cs
+ │
+ ├── Application
+ │     ├── Handlers
+ │     │     PaymentSucceededHandler.cs
+ │     ├── Commands
+ │     │     (optional CQRS commands)
+ │     ├── Queries
+ │     │     (optional queries)
+ │     ├── DTOs
+ │     ├── Interfaces
+ │     └── Behaviors
+ │           (MediatR pipeline behaviors, e.g., logging, validation)
+ │
+ ├── Domain
+ │     ├── Entities
+ │     │     Payment.cs
+ │     ├── ValueObjects
+ │     ├── Events
+ │     │     PaymentSucceededEvent.cs
+ │     ├── Interfaces
+ │     └── Enums
+ │
+ ├── Infrastructure
+ │     ├── Persistence
+ │     │     ApplicationDbContext.cs
+ │     │     Entities
+ │     │           OutboxMessage.cs
+ │     │           StripeEventLog.cs
+ │     ├── Outbox
+ │     │     OutboxProcessor.cs
+ │     ├── Stripe
+ │     │     StripePaymentService.cs
+ │     └── Repositories
+ │           PaymentRepository.cs
+ │
+ └── Shared
+       ├── BaseEntity.cs
+       ├── IDomainEvent.cs

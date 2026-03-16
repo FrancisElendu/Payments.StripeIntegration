@@ -7,12 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Persistence\Entities\" />
+    <ProjectReference Include="..\Payments.StripeIntegration.Application\Payments.StripeIntegration.Application.csproj" />
+    <ProjectReference Include="..\Payments.StripeIntegration.Domain\Payments.StripeIntegration.Domain.csproj" />
+    <ProjectReference Include="..\Payments.StripeIntegration.Shared\Payments.StripeIntegration.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Payments.StripeIntegration.Application\Payments.StripeIntegration.Application.csproj" />
-    <ProjectReference Include="..\Payments.StripeIntegration.Domain\Payments.StripeIntegration.Domain.csproj" />
+    <Folder Include="Repositories\" />
+    <Folder Include="Stripe\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.14" />
   </ItemGroup>
 
 </Project>

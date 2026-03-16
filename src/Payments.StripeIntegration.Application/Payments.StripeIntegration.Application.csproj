@@ -8,11 +8,15 @@
 
   <ItemGroup>
     <Folder Include="Events\" />
-    <Folder Include="Handlers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.14" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Payments.StripeIntegration.Domain\Payments.StripeIntegration.Domain.csproj" />
+    <ProjectReference Include="..\Payments.StripeIntegration.Shared\Payments.StripeIntegration.Shared.csproj" />
   </ItemGroup>
 
 </Project>
