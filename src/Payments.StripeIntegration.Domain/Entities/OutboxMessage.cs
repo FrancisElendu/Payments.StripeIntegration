@@ -17,5 +17,6 @@ namespace Payments.StripeIntegration.Domain.Entities
         public DateTime OccurredOn { get; set; }
 
         public bool Processed { get; set; }
+        public bool Processing { get; set; }
     }
 }

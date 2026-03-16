@@ -25,7 +25,7 @@ namespace Payments.StripeIntegration.Application.Handlers
             if (payment == null)
                 throw new InvalidOperationException("Payment not found.");
 
-            // Idempotency check: avoid double-processing
+            // 1. Idempotency check: avoid double-processing
             if (payment.Status == PaymentStatus.Succeeded)
                 return;
 
@@ -43,13 +43,6 @@ namespace Payments.StripeIntegration.Application.Handlers
                 webhookLog.Processed = true;
                 await _db.SaveChangesAsync(ct);
             }
-
-            // Example side effects
-            // send receipt
-            // update ledger
-            // trigger fulfillment
-
-            //await Task.CompletedTask;
         }
     }
 }

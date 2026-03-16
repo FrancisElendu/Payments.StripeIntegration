@@ -41,3 +41,57 @@
  └── Shared
        ├── BaseEntity.cs
        ├── IDomainEvent.cs
+
+
+       Visual Diagram:
+               ┌───────────────────────────┐
+        │       Stripe Payment       │
+        └─────────────┬────────────┘
+                      │ Stripe sends webhook (payment_intent.succeeded)
+                      ▼
+        ┌───────────────────────────┐
+        │  API Layer (Controllers)  │
+        │ StripeWebhookController.cs│
+        └─────────────┬────────────┘
+                      │
+                      │ Creates StripeWebhookReceivedEvent
+                      │ Saves to OutboxMessages table (Processed=false)
+                      ▼
+        ┌───────────────────────────┐
+        │ Infrastructure Layer       │
+        │ OutboxMessages Table       │
+        │ (Persistence/Entities)     │
+        └─────────────┬────────────┘
+                      │
+                      │ Background service polls unprocessed messages
+                      ▼
+        ┌───────────────────────────┐
+        │ Infrastructure Layer       │
+        │ OutboxProcessor.cs         │
+        └─────────────┬────────────┘
+                      │
+                      │ Deserialize event, mark Processing=true
+                      │ Publish via MediatR
+                      ▼
+        ┌───────────────────────────┐
+        │ Application Layer          │
+        │ StripeWebhookDispatcher.cs │
+        └─────────────┬────────────┘
+                      │
+                      │ If event.Type == PaymentIntentSucceeded
+                      │ Extract PaymentId from Metadata
+                      │ Publish PaymentSucceededEvent
+                      ▼
+        ┌───────────────────────────┐
+        │ Application Layer          │
+        │ PaymentSucceededHandler.cs │
+        └─────────────┬────────────┘
+                      │
+                      │ Update Payment entity in DB
+                      │ Trigger side effects (send receipt, ledger, fulfillment)
+                      ▼
+        ┌───────────────────────────┐
+        │ Domain Layer / DB          │
+        │ Payment Entity             │
+        │ StripeEventId, Status      │
+        └───────────────────────────┘

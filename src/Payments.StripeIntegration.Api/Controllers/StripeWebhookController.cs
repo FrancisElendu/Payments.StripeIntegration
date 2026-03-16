@@ -5,6 +5,7 @@ using Payments.StripeIntegration.Application.Interfaces;
 using Payments.StripeIntegration.Domain.Entities;
 using Payments.StripeIntegration.Domain.Events;
 using Stripe;
+using System.Text.Json;
 
 namespace Payments.StripeIntegration.Api.Controllers
 {
@@ -56,8 +57,22 @@ namespace Payments.StripeIntegration.Api.Controllers
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            await _mediator.Publish(
-            new StripeWebhookReceivedEvent(stripeEvent), cancellationToken);
+            // Save domain event to OUTBOX instead of publishing
+            var domainEvent = new StripeWebhookReceivedEvent(stripeEvent); 
+
+            _db.OutboxMessages.Add(new OutboxMessage 
+            { 
+                Id = Guid.NewGuid(), 
+                Type = domainEvent.GetType().AssemblyQualifiedName!, 
+                Content = JsonSerializer.Serialize(domainEvent), 
+                Processed = false, 
+                OccurredOn = DateTime.UtcNow });
+
+            await _db.SaveChangesAsync(cancellationToken);
+
+
+            //await _mediator.Publish(
+            //new StripeWebhookReceivedEvent(stripeEvent), cancellationToken);
 
             //if (stripeEvent.Type == "payment_intent.succeeded")
             //{

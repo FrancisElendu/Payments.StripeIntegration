@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Stripe;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace Payments.StripeIntegration.Application.Interfaces
 {
     public interface IStripePaymentService
     {
-        Task<string> CreatePaymentIntentAsync(
+        Task<PaymentIntent> CreatePaymentIntentAsync(
         decimal amount,
         string currency,
         string customerId,

@@ -2,7 +2,7 @@
 
 namespace Payments.StripeIntegration.Application.Commands
 {
-    public class CreatePaymentIntentCommand : IRequest<Guid>
+    public class CreatePaymentIntentCommand : IRequest<(Guid PaymentId, string ClientSecret)>
     {
         public decimal Amount { get; }
         public string Currency { get; }

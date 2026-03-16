@@ -19,11 +19,12 @@ namespace Payments.StripeIntegration.Api.Controllers
         public async Task<IActionResult> CreateIntent(
             [FromBody] CreatePaymentIntentCommand command)
         {
-            var clientSecret = await _mediator.Send(command);
+            var result = await _mediator.Send(command);
 
             return Ok(new
             {
-                ClientSecret = clientSecret
+                PaymentId = result.PaymentId,
+                ClientSecret = result.ClientSecret
             });
         }
     }

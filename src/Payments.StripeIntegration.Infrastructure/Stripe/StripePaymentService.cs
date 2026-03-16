@@ -16,7 +16,7 @@ namespace Payments.StripeIntegration.Infrastructure.Stripe
             StripeConfiguration.ApiKey = secretKey;
         }
 
-        public async Task<string> CreatePaymentIntentAsync(
+        public async Task<PaymentIntent> CreatePaymentIntentAsync(
             decimal amount,
             string currency,
             string customerId,
@@ -35,7 +35,7 @@ namespace Payments.StripeIntegration.Infrastructure.Stripe
             var service = new PaymentIntentService();
             var intent = await service.CreateAsync(options, cancellationToken: cancellationToken);
 
-            return intent.Id; // Stripe PaymentIntent Id
+            return intent; // Stripe PaymentIntent Id
         }
     }
 }

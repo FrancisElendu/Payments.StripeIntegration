@@ -5,7 +5,7 @@ using Payments.StripeIntegration.Domain.Entities;
 
 namespace Payments.StripeIntegration.Application.Handlers
 {
-    public class CreatePaymentIntentHandler : IRequestHandler<CreatePaymentIntentCommand, Guid>
+    public class CreatePaymentIntentHandler : IRequestHandler<CreatePaymentIntentCommand, (Guid PaymentId, string ClientSecret)>
     {
         private readonly IApplicationDbContext _db;
         private readonly IStripePaymentService _stripeService;
@@ -18,10 +18,10 @@ namespace Payments.StripeIntegration.Application.Handlers
             _stripeService = stripeService;
         }
 
-        public async Task<Guid> Handle(CreatePaymentIntentCommand request, CancellationToken cancellationToken)
+        public async Task<(Guid PaymentId, string ClientSecret)> Handle(CreatePaymentIntentCommand request, CancellationToken cancellationToken)
         {
             // Call Stripe API to create a PaymentIntent
-            var stripeIntentId = await _stripeService.CreatePaymentIntentAsync(
+            var intent = await _stripeService.CreatePaymentIntentAsync(
                 request.Amount,
                 request.Currency,
                 request.CustomerId,
@@ -30,7 +30,7 @@ namespace Payments.StripeIntegration.Application.Handlers
             );
 
             // Create domain entity
-            var payment = new Payment(stripeIntentId, request.Amount, request.Currency);
+            var payment = new Payment(intent.Id, request.Amount, request.Currency);
 
             // Optional: status already set to "Pending" in constructor
             // Domain event will fire when payment succeeds
@@ -40,7 +40,7 @@ namespace Payments.StripeIntegration.Application.Handlers
             await _db.SaveChangesAsync(cancellationToken);
 
             // Return Payment Id
-            return payment.Id;
+            return (payment.Id, intent.ClientSecret);
         }
     }
 }
