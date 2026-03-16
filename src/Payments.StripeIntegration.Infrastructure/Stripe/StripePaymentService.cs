@@ -1,13 +1,19 @@
-﻿using Payments.StripeIntegration.Application.Interfaces;
+﻿using Microsoft.Extensions.Configuration;
+using Payments.StripeIntegration.Application.Interfaces;
 using Stripe;
 
 namespace Payments.StripeIntegration.Infrastructure.Stripe
 {
     public class StripePaymentService : IStripePaymentService
     {
-        public StripePaymentService()
+        public StripePaymentService(IConfiguration configuration)
         {
-            StripeConfiguration.ApiKey = "sk_test_XXXXXXXX"; // use secret from configuration
+            // Load the secret key from configuration
+            var secretKey = configuration["Stripe:SecretKey"];
+            if (string.IsNullOrWhiteSpace(secretKey))
+                throw new InvalidOperationException("Stripe SecretKey is not configured.");
+
+            StripeConfiguration.ApiKey = secretKey;
         }
 
         public async Task<string> CreatePaymentIntentAsync(

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Payments.StripeIntegration.Application.Interfaces;
+using Payments.StripeIntegration.Domain.Enums;
 using Payments.StripeIntegration.Domain.Events;
 
 namespace Payments.StripeIntegration.Application.Handlers
@@ -16,10 +17,14 @@ namespace Payments.StripeIntegration.Application.Handlers
 
         public async Task Handle(
             PaymentSucceededEvent notification,
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         {
             var payment = await _db.Payments
                 .FirstAsync(x => x.Id == notification.PaymentId);
+
+            payment.MarkSucceeded();
+
+            await _db.SaveChangesAsync(ct);
 
             // Example side effects
             // send receipt

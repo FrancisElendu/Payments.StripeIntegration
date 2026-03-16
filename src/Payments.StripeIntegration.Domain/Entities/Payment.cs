@@ -1,4 +1,5 @@
-﻿using Payments.StripeIntegration.Domain.Events;
+﻿using Payments.StripeIntegration.Domain.Enums;
+using Payments.StripeIntegration.Domain.Events;
 using Payments.StripeIntegration.Shared;
 
 namespace Payments.StripeIntegration.Domain.Entities
@@ -13,9 +14,10 @@ namespace Payments.StripeIntegration.Domain.Entities
 
         public string Currency { get; private set; }
 
-        public string Status { get; private set; }
+        public PaymentStatus Status { get; private set; }
 
         public DateTime CreatedAt { get; private set; }
+        public DateTime? ProcessedAt { get; private set; }
 
         private Payment() { }
 
@@ -25,13 +27,15 @@ namespace Payments.StripeIntegration.Domain.Entities
             StripePaymentIntentId = stripePaymentIntentId;
             Amount = amount;
             Currency = currency;
-            Status = "Pending";
+            Status = PaymentStatus.Pending;
             CreatedAt = DateTime.UtcNow;
+            ProcessedAt = DateTime.UtcNow;
         }
 
         public void MarkSucceeded()
         {
-            Status = "Succeeded";
+            Status = PaymentStatus.Succeeded;
+            ProcessedAt = DateTime.UtcNow;
 
             AddDomainEvent(new PaymentSucceededEvent(Id));
         }

@@ -9,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-StripeConfiguration.ApiKey =
-    builder.Configuration["Stripe:SecretKey"];
+//StripeConfiguration.ApiKey =
+//    builder.Configuration["Stripe:SecretKey"];
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(

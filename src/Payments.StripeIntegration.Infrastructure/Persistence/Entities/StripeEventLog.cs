@@ -1,7 +1,10 @@
-﻿namespace Payments.StripeIntegration.Infrastructure.Persistence.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Payments.StripeIntegration.Infrastructure.Persistence.Entities
 {
     public class StripeEventLog
     {
+        [Key]
         public string EventId { get; set; }
 
         public string EventType { get; set; }

@@ -11,7 +11,9 @@ namespace Payments.StripeIntegration.Infrastructure.Persistence
     {
         public DbSet<Payment> Payments { get; set; }
 
-        public DbSet<StripeEventLog> StripeEvents { get; set; }
+        //public DbSet<StripeEventLog> StripeEvents { get; set; }
+        public DbSet<StripeEventLog> StripeEventLogs { get; set; }
+        
 
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
