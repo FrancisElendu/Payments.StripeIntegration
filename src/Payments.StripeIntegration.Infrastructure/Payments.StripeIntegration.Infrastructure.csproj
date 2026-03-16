@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Persistence\Entities\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Payments.StripeIntegration.Application\Payments.StripeIntegration.Application.csproj" />
+    <ProjectReference Include="..\Payments.StripeIntegration.Domain\Payments.StripeIntegration.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
