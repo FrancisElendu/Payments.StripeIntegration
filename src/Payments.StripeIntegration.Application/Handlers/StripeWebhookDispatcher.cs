@@ -20,21 +20,34 @@ namespace Payments.StripeIntegration.Application.Handlers
         {
             var stripeEvent = notification.StripeEvent;
 
-            if (stripeEvent.Type == EventTypes.PaymentIntentSucceeded
-            && stripeEvent.Data.Object is PaymentIntent paymentIntent
-            && paymentIntent.Metadata.TryGetValue("PaymentId", out var paymentIdStr)
-            && Guid.TryParse(paymentIdStr, out var paymentId))
+            if (stripeEvent.Type == EventTypes.PaymentIntentSucceeded && stripeEvent.Data.Object is PaymentIntent paymentIntent)
             {
+                if (!paymentIntent.Metadata.TryGetValue("PaymentId", out var paymentIdString)
+                    || !Guid.TryParse(paymentIdString, out var paymentId))
+                {
+                    throw new InvalidOperationException(
+                        "PaymentId metadata is missing or invalid on PaymentIntent."
+                    );
+                }
+
                 await _mediator.Publish(new PaymentSucceededEvent(paymentId, stripeEvent.Id), ct);
             }
-            else
-            {
-                // Log or handle missing metadata / invalid GUID
-                // e.g., ILogger or exception tracking
-                throw new InvalidOperationException(
-                    "PaymentId metadata is missing or invalid on PaymentIntent."
-                );
-            }
+
+            //if (stripeEvent.Type == EventTypes.PaymentIntentSucceeded
+            //&& stripeEvent.Data.Object is PaymentIntent paymentIntent
+            //&& paymentIntent.Metadata.TryGetValue("PaymentId", out var paymentIdStr)
+            //&& Guid.TryParse(paymentIdStr, out var paymentId))
+            //{
+            //    await _mediator.Publish(new PaymentSucceededEvent(paymentId, stripeEvent.Id), ct);
+            //}
+            //else
+            //{
+            //    // Log or handle missing metadata / invalid GUID
+            //    // e.g., ILogger or exception tracking
+            //    throw new InvalidOperationException(
+            //        "PaymentId metadata is missing or invalid on PaymentIntent."
+            //    );
+            //}
 
             //switch (stripeEvent.Type)
             //{
