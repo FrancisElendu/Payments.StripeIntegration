@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.14" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.14" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.14" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.2.1" />
     <PackageReference Include="Stripe.net" Version="50.4.1" />
   </ItemGroup>
 

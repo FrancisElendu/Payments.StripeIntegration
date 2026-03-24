@@ -18,5 +18,16 @@ namespace Payments.StripeIntegration.Domain.Entities
 
         public bool Processed { get; set; }
         public bool Processing { get; set; }
+
+        public int RetryCount { get; set; }          // NEW
+        public int MaxRetries { get; set; } = 3;     // NEW
+
+        public DateTime? NextRetryAt { get; set; }   // NEW
+
+        public string? Error { get; set; }           // NEW
+
+        public DateTime? ProcessedOn { get; set; }   // NEW
+
+        public bool DeadLettered { get; set; }       // NEW
     }
 }

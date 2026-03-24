@@ -39,7 +39,7 @@ namespace Payments.StripeIntegration.Api.Controllers
                 Request.Headers["Stripe-Signature"],
                 _config["Stripe:WebhookSecret"]);
 
-
+            //Prevent Duplicate Webhook Processing
             var exists = await _db.StripeEventLogs
             .AnyAsync(x => x.EventId == stripeEvent.Id);
 
@@ -70,9 +70,12 @@ namespace Payments.StripeIntegration.Api.Controllers
 
             await _db.SaveChangesAsync(cancellationToken);
 
-
+            //Keep this commented out gor now as the background service will be publish the event from the outbox, we will uncomment this when we implement the background service to publish the events from the outbox
             //await _mediator.Publish(
             //new StripeWebhookReceivedEvent(stripeEvent), cancellationToken);
+
+
+
 
             //if (stripeEvent.Type == "payment_intent.succeeded")
             //{

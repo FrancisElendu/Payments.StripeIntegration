@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Payments.StripeIntegration.Application\Payments.StripeIntegration.Application.csproj" />
     <ProjectReference Include="..\..\src\Payments.StripeIntegration.Infrastructure\Payments.StripeIntegration.Infrastructure.csproj" />
+    <ProjectReference Include="..\API.Tests\API.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

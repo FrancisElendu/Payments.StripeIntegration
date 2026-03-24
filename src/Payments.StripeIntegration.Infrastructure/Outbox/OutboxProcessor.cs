@@ -25,8 +25,13 @@ namespace Payments.StripeIntegration.Infrastructure.Outbox
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
+                var now = DateTime.UtcNow;
+
                 var messages = await db.OutboxMessages
-                    .Where(x => !x.Processed && !x.Processing)
+                    .Where(x => !x.Processed &&
+                        !x.Processing &&
+                        !x.DeadLettered &&
+                        (x.NextRetryAt == null || x.NextRetryAt <= now))
                     .OrderBy(x => x.OccurredOn)
                     .Take(20)
                     .ToListAsync(ct);
@@ -47,22 +52,63 @@ namespace Payments.StripeIntegration.Infrastructure.Outbox
 
                 foreach (var message in messages)
                 {
-                    var type = Type.GetType(message.Type);
-
-                    if (type == null)
-                        continue;
-
-                    var domainEvent = JsonSerializer.Deserialize(
-                        message.Content,
-                        type);
-
-                    if (domainEvent is INotification notification)
+                    try
                     {
-                        await mediator.Publish(notification, ct);
-                    }
+                        var type = Type.GetType(message.Type);
 
-                    message.Processed = true;
+                        if (type == null)
+                            throw new InvalidOperationException($"Type not found: {message.Type}");
+
+                        var domainEvent = JsonSerializer.Deserialize(message.Content, type);
+
+                        if (domainEvent is INotification notification)
+                        {
+                            await mediator.Publish(notification, ct);
+                        }
+
+                        // SUCCESS
+                        message.Processed = true;
+                        message.ProcessedOn = DateTime.UtcNow;
+                        message.Processing = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        // FAILURE
+                        message.RetryCount++;
+                        message.Error = ex.Message;
+                        message.Processing = false;
+
+                        if (message.RetryCount >= message.MaxRetries)
+                        {
+                            message.DeadLettered = true; // Move to DLQ
+                        }
+                        else
+                        {
+                            // Exponential backoff
+                            var delaySeconds = Math.Pow(2, message.RetryCount);
+                            message.NextRetryAt = DateTime.UtcNow.AddSeconds(delaySeconds);
+                        }
+                    }
                 }
+
+                //foreach (var message in messages)
+                //{
+                //    var type = Type.GetType(message.Type);
+
+                //    if (type == null)
+                //        continue;
+
+                //    var domainEvent = JsonSerializer.Deserialize(
+                //        message.Content,
+                //        type);
+
+                //    if (domainEvent is INotification notification)
+                //    {
+                //        await mediator.Publish(notification, ct);
+                //    }
+
+                //    message.Processed = true;
+                //}
 
                 await db.SaveChangesAsync(ct);
 
