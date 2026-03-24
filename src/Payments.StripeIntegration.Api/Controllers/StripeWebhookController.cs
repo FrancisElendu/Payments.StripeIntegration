@@ -13,83 +13,111 @@ namespace Payments.StripeIntegration.Api.Controllers
     [ApiController]
     public class StripeWebhookController : ControllerBase
     {
-        private readonly IApplicationDbContext _db;
-        private readonly IConfiguration _config;
-        private readonly IMediator _mediator;
+        private readonly IStripeWebhookService _stripeService;
 
-        public StripeWebhookController(
-            IMediator mediator,
-            IApplicationDbContext db,
-            IConfiguration config)
+        public StripeWebhookController(IStripeWebhookService stripeService)
         {
-            _mediator = mediator;
-            _db = db;
-            _config = config;
+            _stripeService = stripeService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> HandleWebhook(CancellationToken cancellationToken)
+        public async Task<IActionResult> HandleWebhook(CancellationToken ct)
         {
-            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-            
-            //var cancellationToken = HttpContext.RequestAborted;  //can do it this way as well, but we are passing it from the method parameter, so we can use it in the service layer as well
+            using var reader = new StreamReader(Request.Body);
+            var json = await reader.ReadToEndAsync();
 
-            var stripeEvent = EventUtility.ConstructEvent(
-                json,
-                Request.Headers["Stripe-Signature"],
-                _config["Stripe:WebhookSecret"]);
+            var signature = Request.Headers["Stripe-Signature"];
 
-            //Prevent Duplicate Webhook Processing
-            var exists = await _db.StripeEventLogs
-            .AnyAsync(x => x.EventId == stripeEvent.Id);
-
-            if (exists)
-                return Ok();
-
-            _db.StripeEventLogs.Add(new StripeEventLog
-            {
-                EventId = stripeEvent.Id,
-                EventType = stripeEvent.Type,
-                Payload = json,
-                Processed = false,
-                ReceivedAt = DateTime.UtcNow
-            });
-
-            await _db.SaveChangesAsync(cancellationToken);
-
-            // Save domain event to OUTBOX instead of publishing
-            var domainEvent = new StripeWebhookReceivedEvent(stripeEvent); 
-
-            _db.OutboxMessages.Add(new OutboxMessage 
-            { 
-                Id = Guid.NewGuid(), 
-                Type = domainEvent.GetType().AssemblyQualifiedName!, 
-                Content = JsonSerializer.Serialize(domainEvent), 
-                Processed = false, 
-                OccurredOn = DateTime.UtcNow });
-
-            await _db.SaveChangesAsync(cancellationToken);
-
-            //Keep this commented out gor now as the background service will be publish the event from the outbox, we will uncomment this when we implement the background service to publish the events from the outbox
-            //await _mediator.Publish(
-            //new StripeWebhookReceivedEvent(stripeEvent), cancellationToken);
-
-
-
-
-            //if (stripeEvent.Type == "payment_intent.succeeded")
-            //{
-            //    var intent = stripeEvent.Data.Object as PaymentIntent;
-
-            //    var payment = await _db.Payments
-            //        .FirstOrDefaultAsync(x => x.StripePaymentIntentId == intent.Id);
-
-            //    payment.MarkSucceeded();
-
-            //    await _db.SaveChangesAsync();
-            //}
+            await _stripeService.HandleEventAsync(json, signature, ct);
 
             return Ok();
         }
     }
+
+
+
+    //OLD Implementation without the service layer, we will keep this for reference until we have implemented the service layer and then we will remove this, we will also keep the StripeWebhookReceivedEvent as it is still relevant and we will use it in the service layer to publish the event to the outbox, we will just move it to a different folder in the application layer
+    //[Route("api/stripe/webhook")]
+    //[ApiController]
+    //public class StripeWebhookController : ControllerBase
+    //{
+    //    private readonly IApplicationDbContext _db;
+    //    private readonly IConfiguration _config;
+    //    private readonly IMediator _mediator;
+
+    //    public StripeWebhookController(
+    //        IMediator mediator,
+    //        IApplicationDbContext db,
+    //        IConfiguration config)
+    //    {
+    //        _mediator = mediator;
+    //        _db = db;
+    //        _config = config;
+    //    }
+
+    //    [HttpPost]
+    //    public async Task<IActionResult> HandleWebhook(CancellationToken cancellationToken)
+    //    {
+    //        var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+
+    //        //var cancellationToken = HttpContext.RequestAborted;  //can do it this way as well, but we are passing it from the method parameter, so we can use it in the service layer as well
+
+    //        var stripeEvent = EventUtility.ConstructEvent(
+    //            json,
+    //            Request.Headers["Stripe-Signature"],
+    //            _config["Stripe:WebhookSecret"]);
+
+    //        //Prevent Duplicate Webhook Processing
+    //        var exists = await _db.StripeEventLogs
+    //        .AnyAsync(x => x.EventId == stripeEvent.Id);
+
+    //        if (exists)
+    //            return Ok();
+
+    //        _db.StripeEventLogs.Add(new StripeEventLog
+    //        {
+    //            EventId = stripeEvent.Id,
+    //            EventType = stripeEvent.Type,
+    //            Payload = json,
+    //            Processed = false,
+    //            ReceivedAt = DateTime.UtcNow
+    //        });
+
+    //        await _db.SaveChangesAsync(cancellationToken);
+
+    //        // Save domain event to OUTBOX instead of publishing
+    //        var domainEvent = new StripeWebhookReceivedEvent(stripeEvent); 
+
+    //        _db.OutboxMessages.Add(new OutboxMessage 
+    //        { 
+    //            Id = Guid.NewGuid(), 
+    //            Type = domainEvent.GetType().AssemblyQualifiedName!, 
+    //            Content = JsonSerializer.Serialize(domainEvent), 
+    //            Processed = false, 
+    //            OccurredOn = DateTime.UtcNow });
+
+    //        await _db.SaveChangesAsync(cancellationToken);
+
+    //        //Keep this commented out for now as the background service will be publish the event from the outbox, we will uncomment this when we implement the background service to publish the events from the outbox
+    //        //await _mediator.Publish(
+    //        //new StripeWebhookReceivedEvent(stripeEvent), cancellationToken);
+
+
+
+
+    //        //if (stripeEvent.Type == "payment_intent.succeeded")
+    //        //{
+    //        //    var intent = stripeEvent.Data.Object as PaymentIntent;
+
+    //        //    var payment = await _db.Payments
+    //        //        .FirstOrDefaultAsync(x => x.StripePaymentIntentId == intent.Id);
+
+    //        //    payment.MarkSucceeded();
+
+    //        //    await _db.SaveChangesAsync();
+    //        //}
+
+    //        return Ok();
+    //    }
+    //}
 }

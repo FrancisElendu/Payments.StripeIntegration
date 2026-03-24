@@ -1,9 +1,8 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Payments.StripeIntegration.Application.Interfaces;
 using Payments.StripeIntegration.Infrastructure.Persistence;
-using System.Text.Json;
 
 namespace Payments.StripeIntegration.Infrastructure.Outbox
 {
@@ -23,7 +22,8 @@ namespace Payments.StripeIntegration.Infrastructure.Outbox
                 using var scope = _provider.CreateScope();
 
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                //var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
                 var now = DateTime.UtcNow;
 
@@ -54,42 +54,63 @@ namespace Payments.StripeIntegration.Infrastructure.Outbox
                 {
                     try
                     {
-                        var type = Type.GetType(message.Type);
+                        await bus.PublishAsync(message.Type, message.Content, ct);
 
-                        if (type == null)
-                            throw new InvalidOperationException($"Type not found: {message.Type}");
-
-                        var domainEvent = JsonSerializer.Deserialize(message.Content, type);
-
-                        if (domainEvent is INotification notification)
-                        {
-                            await mediator.Publish(notification, ct);
-                        }
-
-                        // SUCCESS
                         message.Processed = true;
                         message.ProcessedOn = DateTime.UtcNow;
                         message.Processing = false;
                     }
                     catch (Exception ex)
                     {
-                        // FAILURE
                         message.RetryCount++;
                         message.Error = ex.Message;
                         message.Processing = false;
 
                         if (message.RetryCount >= message.MaxRetries)
-                        {
-                            message.DeadLettered = true; // Move to DLQ
-                        }
-                        else
-                        {
-                            // Exponential backoff
-                            var delaySeconds = Math.Pow(2, message.RetryCount);
-                            message.NextRetryAt = DateTime.UtcNow.AddSeconds(delaySeconds);
-                        }
+                            message.DeadLettered = true;
                     }
                 }
+
+                //foreach (var message in messages)
+                //{
+                //    try
+                //    {
+                //        var type = Type.GetType(message.Type);
+
+                //        if (type == null)
+                //            throw new InvalidOperationException($"Type not found: {message.Type}");
+
+                //        var domainEvent = JsonSerializer.Deserialize(message.Content, type);
+
+                //        if (domainEvent is INotification notification)
+                //        {
+                //            await mediator.Publish(notification, ct);
+                //        }
+
+                //        // SUCCESS
+                //        message.Processed = true;
+                //        message.ProcessedOn = DateTime.UtcNow;
+                //        message.Processing = false;
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        // FAILURE
+                //        message.RetryCount++;
+                //        message.Error = ex.Message;
+                //        message.Processing = false;
+
+                //        if (message.RetryCount >= message.MaxRetries)
+                //        {
+                //            message.DeadLettered = true; // Move to DLQ
+                //        }
+                //        else
+                //        {
+                //            // Exponential backoff
+                //            var delaySeconds = Math.Pow(2, message.RetryCount);
+                //            message.NextRetryAt = DateTime.UtcNow.AddSeconds(delaySeconds);
+                //        }
+                //    }
+                //}
 
                 //foreach (var message in messages)
                 //{

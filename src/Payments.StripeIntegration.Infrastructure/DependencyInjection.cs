@@ -23,6 +23,8 @@ namespace Payments.StripeIntegration.Infrastructure
 
             services.AddHostedService<OutboxProcessor>();
 
+            services.AddScoped<IStripeWebhookService, StripeWebhookService>();
+
             services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
 
             services.AddSingleton<IConnection>(sp =>
