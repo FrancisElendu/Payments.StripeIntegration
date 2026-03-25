@@ -25,8 +25,6 @@ namespace Payments.StripeIntegration.Infrastructure
 
             services.AddScoped<IStripeWebhookService, StripeWebhookService>();
 
-            services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
-
             services.AddSingleton<IConnection>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();
@@ -41,6 +39,9 @@ namespace Payments.StripeIntegration.Infrastructure
                 // Safe to block ONLY at startup
                 return factory.CreateConnectionAsync().GetAwaiter().GetResult();
             });
+
+            services.AddSingleton<RabbitMqChannelPool>();
+            services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
         }
     }
 }
