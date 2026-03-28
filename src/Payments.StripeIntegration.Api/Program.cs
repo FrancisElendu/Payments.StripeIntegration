@@ -1,10 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-using Payments.StripeIntegration.Application.Interfaces;
+using Payments.StripeIntegration.Api.Middleware;
 using Payments.StripeIntegration.Infrastructure;
-using Payments.StripeIntegration.Infrastructure.Outbox;
-using Payments.StripeIntegration.Infrastructure.Persistence;
-using Payments.StripeIntegration.Infrastructure.Stripe;
-using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +31,8 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseExceptionHandlingMiddleware();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
