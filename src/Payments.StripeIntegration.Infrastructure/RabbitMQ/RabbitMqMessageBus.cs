@@ -60,10 +60,17 @@ namespace Payments.StripeIntegration.Infrastructure.RabbitMQ
             for (int attempt = 1; attempt <= retryCount; attempt++)
             {
                 IChannel? channel = null;
-
+                _channelPool.GetChannelAsync(ct).ContinueWith(t =>
+                {
+                    if (t.IsCompletedSuccessfully)
+                    {
+                        channel = t.Result;
+                    }
+                }, ct).Wait(ct);
                 try
                 {
-                    channel = await _connection.CreateChannelAsync(options, ct);
+                    //
+                    //channel = await _connection.CreateChannelAsync(options, ct);
 
                     // Prevent duplicate event handlers (IMPORTANT with pooling)
                     channel.BasicReturnAsync -= OnMessageReturnedAsync;

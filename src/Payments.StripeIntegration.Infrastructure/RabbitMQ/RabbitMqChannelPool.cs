@@ -57,7 +57,7 @@ namespace Payments.StripeIntegration.Infrastructure.RabbitMQ
                     return channel;
             }
 
-            return await _connection.CreateChannelAsync(options,ct);
+            return await _connection.CreateChannelAsync(options, ct);
         }
 
         public void ReturnChannel(IChannel channel)
